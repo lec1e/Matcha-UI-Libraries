@@ -1275,6 +1275,7 @@ local Input = {
 
 local BuildSettingsTab
 local SettingsTab
+local ApplyInputState
 local ShowSpotlight
 local WantTooltip
 local DrawMenuBars
@@ -1332,6 +1333,7 @@ local State = {
   Boxes = {},
   Spotlight = { Value = "", Caret = 0, Sel = 1, Offset = 0 },
   SpotlightOpen = false,
+  SpotlightEnabled = true,
   HotkeyShown = true,
   Tip = nil,
   Dialog = nil,
@@ -1364,6 +1366,7 @@ local State = {
   Opacity = 0.98,
   AutoSave = false,
   GameInput = true,
+  InputSent = true,
   SmartFps = false,
   LastAct = 0,
   LastX = 0,
@@ -1685,46 +1688,6 @@ local function FadeLine(x, y, width, color, z, transparency, reverse)
 
     Prev = Next
   end
-end
-
-
-local function ActiveView()
-  local Tab = State.Tabs[State.ActiveIndex]
-  if not Tab then return nil end
-
-  if #Tab.Subs == 0 then return Tab end
-  if State.ActiveSub and State.ActiveSub.Parent == Tab then return State.ActiveSub end
-
-  return Tab.Subs[1]
-end
-
-
-local function TopHeight()
-  return State.TabLayout == "top" and Layout.TitleHeight or Layout.TopbarHeight
-end
-
-
-local function TitleMid()
-  return State.Y + TopHeight() / 2
-end
-
-
-local function RailWidth()
-  if State.TabLayout == "top" then return 0 end
-
-  local Wide = math.max(Layout.RailWide, math.floor(State.W * Layout.RailShare))
-  local Shown = Layout.RailNarrow + (Wide - Layout.RailNarrow) * State.RailOpen
-  local Target = (State.Lite or State.RailPinned or IsMouseIn(State.X, State.Y, Shown, State.H)) and 1 or 0
-
-  State.RailOpen = Approach(State.RailOpen, Target, 10)
-  if math.abs(State.RailOpen - Target) < 0.003 then State.RailOpen = Target end
-
-  return Layout.RailNarrow + (Wide - Layout.RailNarrow) * State.RailOpen
-end
-
-
-do
-
 end
 
 
@@ -4474,6 +4437,8 @@ function InsUi:CreateWindow(config)
 
   State.Open = config.startOpen ~= false
 
+  ApplyInputState(true)
+
   Window = setmetatable({}, WindowClass)
 
   task.spawn(function()
@@ -5192,6 +5157,9 @@ end
 
 function InsUi:Destroy()
   State.Alive = false
+  State.Open = false
+
+  setrobloxinput(true)
 
   for Kind, List in pairs(Pool) do
     for Index = 1, #List do
@@ -5266,6 +5234,17 @@ end
 
 function InsUi:SetGameInput(on)
   State.GameInput = (on == "always") and "always" or (on ~= false)
+
+  ApplyInputState(true)
+
+  return self
+end
+
+
+function InsUi:SetSpotlight(on)
+  State.SpotlightEnabled = on ~= false
+
+  if not State.SpotlightEnabled then ShowSpotlight(false) end
 
   return self
 end
@@ -5425,6 +5404,7 @@ end
 function ApplyOptions(config)
   if config.menuKey then InsUi:SetMenuKey(config.menuKey) end
   if config.gameInput ~= nil then InsUi:SetGameInput(config.gameInput) end
+  if config.spotlight ~= nil then InsUi:SetSpotlight(config.spotlight) end
   if config.logo then InsUi:SetLogo(config.logo) end
   if config.logoSize then State.LogoSize = math.min(math.max(tonumber(config.logoSize), 16), 96) end
   if config.icon then InsUi:SetIcon(config.icon) end
@@ -6872,6 +6852,30 @@ local function StepTheme()
 end
 
 
+do
+  local function GameCaptures()
+    if State.Dialog then return true end
+    if not State.Open or State.Rolled then return false end
+    if State.GameInput == "always" then return false end
+    if State.GameInput ~= true then return true end
+    if State.Dropdown or State.Picker or State.Menu or State.SpotlightOpen then return true end
+
+    return IsMouseIn(State.X, State.Y, State.W, State.H)
+  end
+
+
+  function ApplyInputState(force)
+    local ToGame = not GameCaptures()
+
+    if not force and State.InputSent == ToGame then return end
+
+    State.InputSent = ToGame
+
+    setrobloxinput(ToGame)
+  end
+end
+
+
 local function DrawMenu()
   local View = ActiveView()
 
@@ -6940,7 +6944,7 @@ task.spawn(function()
     if State.Visible > 0.997 then State.Visible = 1 end
     if State.Visible < 0.003 then State.Visible = 0 end
 
-    if (Keys.Ctrl.Held or Keys.LeftCtrl.Held or Keys.RightCtrl.Held) and Keys.Space.Click then
+    if State.SpotlightEnabled and (Keys.Ctrl.Held or Keys.LeftCtrl.Held or Keys.RightCtrl.Held) and Keys.Space.Click then
       ShowSpotlight(not State.SpotlightOpen)
 
       Keys.Space.Click = false
@@ -7003,6 +7007,7 @@ task.spawn(function()
       DrawHotkeyOverlay()
     end
 
+    ApplyInputState(false)
     DrawMinBubble()
 
     Input.Click, Input.Right, Input.Down = Click, Right, Down
