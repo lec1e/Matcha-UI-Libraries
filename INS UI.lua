@@ -1344,7 +1344,7 @@ local State = {
  RowLines = false,
  Opacity = 0.98,
  AutoSave = false,
- GameInput = false,
+ GameInput = "always",
  InputSent = nil,
  SmartFps = false,
  LastAct = 0,
@@ -6511,17 +6511,27 @@ end
 
 do
  local function GameCaptures()
- if State.Dialog then return true end
- if not State.Open or State.Rolled then return false end
- if State.GameInput == "always" then return false end
-
+ if State.GameInput == "always" then
+  return false
+ end
+ if State.Dialog then
+  return true
+ end
+ if not State.Open or State.Rolled then
+  return false
+ end
+ if State.GameInput == true then
+  return IsMouseIn(State.X, State.Y, State.W, State.H)
+ end
  return true
  end
 
  function ApplyInputState(force)
  local ToGame = not GameCaptures()
 
- if not force and State.InputSent == ToGame then return end
+ if not force and State.InputSent == ToGame then
+  return
+ end
 
  State.InputSent = ToGame
 
