@@ -37,6 +37,7 @@ local SpotHint = "Ctrl+Space"
 local Instance = {}
 
 _G[LibName .. "Instance"] = Instance
+pcall(setrobloxinput, true)
 
 local function Blend(first, second, amount)
  return Color3.new(first.R + (second.R - first.R) * amount, first.G + (second.G - first.G) * amount, first.B + (second.B - first.B) * amount)
@@ -4905,6 +4906,7 @@ end
 
 function InsUi:Toggle()
  State.Open = not State.Open
+ pcall(setrobloxinput, true)
  return self
 end
 
@@ -4948,6 +4950,7 @@ end
 
 function InsUi:SetOpen(open)
  State.Open = open == true
+ pcall(setrobloxinput, true)
  return self
 end
 
@@ -6562,6 +6565,11 @@ task.spawn(function()
  ReadKeys()
  StepTheme()
 
+ if Now - (State.InputPulse or 0) >= 1 then
+ State.InputPulse = Now
+ pcall(setrobloxinput, true)
+ end
+
  if Input.Up then ReleaseDrags() end
 
  State.Visible = Approach(State.Visible, State.Open and 1 or 0, 12)
@@ -6577,7 +6585,10 @@ task.spawn(function()
 
  local MenuKey = Keys[State.MenuKey]
 
- if MenuKey and MenuKey.Click and not State.Focus and not State.Capture then State.Open = not State.Open end
+ if MenuKey and MenuKey.Click and not State.Focus and not State.Capture then
+ State.Open = not State.Open
+ pcall(setrobloxinput, true)
+ end
 
  local Editing = State.Focus
 
