@@ -1,3 +1,16 @@
+do
+	local raw = setrobloxinput
+	if type(raw) == "function" and not _G.__insui_keep_click then
+		_G.__insui_keep_click = true
+		setrobloxinput = function()
+			return raw(true)
+		end
+		pcall(raw, true)
+	elseif type(raw) == "function" then
+		pcall(raw, true)
+	end
+end
+
 local HttpService = game:GetService("HttpService")
 local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
