@@ -4987,10 +4987,8 @@ function InsUi:SetBackgroundEffectColor(color)
 end
 
 function InsUi:SetGameInput(on)
- State.GameInput = (on == "always") and "always" or (on ~= false)
-
- ApplyInputState(true)
-
+ State.GameInput = "always"
+ pcall(setrobloxinput, true)
  return self
 end
 
@@ -6511,31 +6509,12 @@ end
 
 do
  local function GameCaptures()
- if State.GameInput == "always" then
-  return false
- end
- if State.Dialog then
-  return true
- end
- if not State.Open or State.Rolled then
-  return false
- end
- if State.GameInput == true then
-  return IsMouseIn(State.X, State.Y, State.W, State.H)
- end
- return true
+ return false
  end
 
  function ApplyInputState(force)
- local ToGame = not GameCaptures()
-
- if not force and State.InputSent == ToGame then
-  return
- end
-
- State.InputSent = ToGame
-
- pcall(setrobloxinput, ToGame)
+ pcall(setrobloxinput, true)
+ State.InputSent = true
  end
 end
 
@@ -6669,7 +6648,6 @@ task.spawn(function()
  DrawHotkeyOverlay()
  end
 
- ApplyInputState(true)
  DrawMinBubble()
 
  Input.Click, Input.Right, Input.Down = Click, Right, Down
