@@ -1240,35 +1240,26 @@ local WantTooltip
 local DrawMenuBars
 local BarTint = Color3.fromRGB(36, 38, 50)
 
-local function ReadMouseXY()
+local function ReadInput()
+ local WasDown, WasRight = Input.Down, Input.RightDown
  local x, y
 
  pcall(function()
-  x, y = Mouse.X, Mouse.Y
+  x = Mouse.X
+  y = Mouse.Y
  end)
 
- if type(x) ~= "number" or type(y) ~= "number" then
-  pcall(function()
-   local Location = game:GetService("UserInputService"):GetMouseLocation()
-   x, y = Location.X, Location.Y
-  end)
- end
+ Input.X = tonumber(x) or 0
+ Input.Y = tonumber(y) or 0
 
- if type(x) ~= "number" or type(y) ~= "number" then
-  pcall(function()
-   x, y = Mouse.x, Mouse.y
-  end)
- end
+ local down, right = false, false
+ pcall(function()
+  down = ismouse1pressed() and true or false
+  right = ismouse2pressed() and true or false
+ end)
 
- return tonumber(x) or 0, tonumber(y) or 0
-end
-
-local function ReadInput()
- local WasDown, WasRight = Input.Down, Input.RightDown
-
- Input.X, Input.Y = ReadMouseXY()
- Input.Down = ismouse1pressed() == true
- Input.RightDown = ismouse2pressed() == true
+ Input.Down = down
+ Input.RightDown = right
  Input.Click = Input.Down and not WasDown
  Input.Right = Input.RightDown and not WasRight
  Input.Up = WasDown and not Input.Down
@@ -4988,7 +4979,6 @@ end
 
 function InsUi:SetGameInput(on)
  State.GameInput = "always"
- pcall(setrobloxinput, true)
  return self
 end
 
@@ -6508,13 +6498,7 @@ local function StepTheme()
 end
 
 do
- local function GameCaptures()
- return false
- end
-
- function ApplyInputState(force)
- pcall(setrobloxinput, true)
- State.InputSent = true
+ function ApplyInputState()
  end
 end
 
