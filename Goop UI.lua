@@ -483,9 +483,9 @@ local Library do
 
     -- // Draw Helpers \\ --
 
-    local MAX_SQUARES = 220
-    local MAX_TEXTS = 120
-    local MAX_IMAGES = 24
+    local MAX_SQUARES = 1200
+    local MAX_TEXTS = 300
+    local MAX_IMAGES = 48
 
     local function DrawRect(X, Y, W, H, Color, Opacity)
         W = MathFloor(tonumber(W) or 0)
@@ -2254,8 +2254,6 @@ local Library do
             end
         end
 
-        Library:RenderColorPicker()
-
         if Library.Input.MouseClicked and Library.ActiveDropdown and Library.ActiveDropdown.Open and not Library.Input.Consumed then
             Library.ActiveDropdown.Open = false
             Library.ActiveDropdown = nil
@@ -2462,7 +2460,8 @@ local Library do
         local AlphaW = TotalContentW - SwatchGap - SwatchSize
         local ContW = ContPad + TotalContentW + ContPad
         local ContH = ContPad + SVSize + AlphaBarGap + AlphaBarH + ButtonGap + ButtonH + ContPad
-        local SVSteps = 24
+        -- 24^2 = 576 cells alone blew Matcha's old 220 square pool (Style chrome vanished).
+        local SVSteps = 16
 
         local ContX = WX + WinPad
         local ContY = WY + TitleH + WinPad
@@ -2524,7 +2523,7 @@ local Library do
         -- for the session and just redrawn each frame instead of recomputed.
         local HueX = SVX + SVSize + HueBarGap
         local HueY = SVY
-        local HueStep = 2
+        local HueStep = 3
 
         if not Library.HueBarCache then
             local Cache = { }
@@ -2537,7 +2536,7 @@ local Library do
 
         DrawRect(HueX - 1, HueY - 1, HueBarW + 2, SVSize + 2, Theme["Black"])
         for Index, Color in Library.HueBarCache do
-            DrawRect(HueX, HueY + (Index - 1) * HueStep, HueBarW, HueStep, Color)
+            DrawRect(HueX, HueY + (Index - 1) * HueStep, HueBarW, HueStep + 1, Color)
         end
 
         local HueCursorY = HueY + MathFloor(Picker.Hue * (SVSize - 1))
@@ -3347,6 +3346,8 @@ local Library do
                 Window:Render()
             end
         end
+
+        Library:RenderColorPicker()
 
         if Library.SnapGuides then
             for _, G in Library.SnapGuides do
