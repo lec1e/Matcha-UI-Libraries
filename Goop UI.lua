@@ -59,17 +59,27 @@ local Library do
     local VK = {
         LeftMouse = 0x01, RightMouse = 0x02,
         Backspace = 0x08, Tab = 0x09, Enter = 0x0D, Escape = 0x1B, Space = 0x20,
-        LeftShift = 0xA0, RightShift = 0xA1, Shift = 0x10,
+        CapsLock = 0x14, LeftShift = 0xA0, RightShift = 0xA1, Shift = 0x10,
         LeftCtrl = 0xA2, RightCtrl = 0xA3, Ctrl = 0x11,
         LeftAlt = 0xA4, RightAlt = 0xA5, Alt = 0x12,
-        Insert = 0x2D, Delete = 0x2E,
+        Insert = 0x2D, Delete = 0x2E, Home = 0x24, End = 0x23,
         LeftArrow = 0x25, UpArrow = 0x26, RightArrow = 0x27, DownArrow = 0x28,
+        PrintScreen = 0x2C, Applications = 0x5D, NumLock = 0x90,
         ["0"] = 0x30, ["1"] = 0x31, ["2"] = 0x32, ["3"] = 0x33, ["4"] = 0x34,
         ["5"] = 0x35, ["6"] = 0x36, ["7"] = 0x37, ["8"] = 0x38, ["9"] = 0x39,
         A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47,
         H = 0x48, I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C, M = 0x4D, N = 0x4E,
         O = 0x4F, P = 0x50, Q = 0x51, R = 0x52, S = 0x53, T = 0x54, U = 0x55,
         V = 0x56, W = 0x57, X = 0x58, Y = 0x59, Z = 0x5A,
+        F1 = 0x70, F2 = 0x71, F3 = 0x72, F4 = 0x73, F5 = 0x74, F6 = 0x75,
+        F7 = 0x76, F8 = 0x77, F9 = 0x78, F10 = 0x79, F11 = 0x7A, F12 = 0x7B,
+        Numpad0 = 0x60, Numpad1 = 0x61, Numpad2 = 0x62, Numpad3 = 0x63, Numpad4 = 0x64,
+        Numpad5 = 0x65, Numpad6 = 0x66, Numpad7 = 0x67, Numpad8 = 0x68, Numpad9 = 0x69,
+        Multiply = 0x6A, Add = 0x6B, Subtract = 0x6D, Decimal = 0x6E, Divide = 0x6F,
+        OEM_1 = 0xBA, OEM_PLUS = 0xBB, OEM_COMMA = 0xBC, OEM_MINUS = 0xBD,
+        OEM_PERIOD = 0xBE, OEM_2 = 0xBF, OEM_3 = 0xC0, OEM_4 = 0xDB,
+        OEM_5 = 0xDC, OEM_6 = 0xDD, OEM_7 = 0xDE,
+        MediaPrevTrack = 0xB1, MediaPlayPause = 0xB3, MediaNextTrack = 0xB0,
     }
 
     local function IsKeyPressed(Target)
@@ -90,6 +100,34 @@ local Library do
             end
         end
         return false
+    end
+
+    local NativeGetPressedKeys = getpressedkeys
+    local function GetPressedKeys()
+        if type(NativeGetPressedKeys) == "function" then
+            local Ok, Keys = pcall(NativeGetPressedKeys)
+            if Ok and type(Keys) == "table" then
+                return Keys
+            end
+        end
+        local Keys = { }
+        local Seen = { }
+        for Name, Code in pairs(VK) do
+            local Down = false
+            pcall(function()
+                Down = iskeypressed(Code) == true
+            end)
+            if Down then
+                Keys[#Keys + 1] = Name
+                Seen[Name] = true
+            end
+        end
+        for Name in pairs(PressedKeySet) do
+            if not Seen[Name] then
+                Keys[#Keys + 1] = Name
+            end
+        end
+        return Keys
     end
 
     local function isleftpressed()
@@ -262,7 +300,13 @@ local Library do
     }
 
     Library.Camera = Camera
-    Library.Viewport = Camera.ViewportSize * Library.DPIScale
+    Library.Viewport = Vector2New(1920, 1080)
+    pcall(function()
+        local Size = Camera.ViewportSize
+        if Size and Size.X then
+            Library.Viewport = Size * Library.DPIScale
+        end
+    end)
 
     local Theme = Library.Theme
 
@@ -326,6 +370,22 @@ local Library do
 
     Library.FontSize = 13
     Library.Font = MatchaFont
+    do
+        local FontNames = { "UI", "System", "SystemBold", "Minecraft", "Monospace", "Pixel", "Fortnite" }
+        Library.Fonts.Data.List = FontNames
+        Library.Fonts.Data.Fonts = { }
+        pcall(function()
+            for _, Name in FontNames do
+                local Id = Drawing.Fonts[Name]
+                if type(Id) == "number" then
+                    Library.Fonts.Data.Fonts[Name] = Id
+                end
+            end
+        end)
+        if type(Library.Fonts.Data.Fonts.System) == "number" then
+            Library.Font = Library.Fonts.Data.Fonts.System
+        end
+    end
 
     -- // Icons \\ --
 
@@ -1280,7 +1340,7 @@ local Library do
             end
 
             if IsFocused then
-                for _, Key in getpressedkeys() do
+                for _, Key in GetPressedKeys() do
                     if not TableFind(self.PrevKeys, Key) then
                         if Key == "Enter" then
                             Library.Input.FocusedTextbox = nil
@@ -1297,7 +1357,7 @@ local Library do
                         end
                     end
                 end
-                self.PrevKeys = getpressedkeys() or { }
+                self.PrevKeys = GetPressedKeys()
             end
         end
 
@@ -1865,7 +1925,7 @@ local Library do
             return ProposedX, ProposedY
         end
 
-        local Pressed = getpressedkeys() or { }
+        local Pressed = GetPressedKeys()
         if TableFind(Pressed, "LeftAlt") or TableFind(Pressed, "RightAlt") then
             return ProposedX, ProposedY
         end
@@ -2240,7 +2300,7 @@ local Library do
                     Library.CapturingKeyPicker = nil
                 else
                     if tick() - Keypicker.CapturingTime >= 0.4 then
-                        for _, Key in getpressedkeys() do
+                        for _, Key in GetPressedKeys() do
                             if Key ~= "LeftButton" and Key ~= "RightButton" and Key ~= "MB1" and Key ~= "MB2" and Key ~= "MouseLeftButton" and Key ~= "MouseRightButton" and Key ~= "" and Key ~= "Escape" then
                                 Keypicker.BoundKey = Key
                                 Keypicker.Capturing = false
@@ -2809,10 +2869,10 @@ local Library do
         StyleSection:Dropdown({
             Name = "Font Selector",
             Options = Library.Fonts.Data.List,
-            Default = TableFind(Library.Fonts.Data.List, Library.Font) or 1,
+            Default = TableFind(Library.Fonts.Data.List, "System") or 2,
             Flag = "UI_Font",
             Callback = function(Selection)
-                Library.Font = Selection
+                Library.Font = Library.Fonts.Data.Fonts[Selection] or Library.Font
             end,
         })
 
