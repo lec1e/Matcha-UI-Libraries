@@ -3,11 +3,6 @@ local Camera = workspace.CurrentCamera
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local InputService
-pcall(function()
- InputService = game:GetService("UserInputService")
-end)
-local MouseServiceOk = true
 
 local Fonts = Drawing.Fonts
 local SystemFont = Fonts.System
@@ -1250,31 +1245,27 @@ local function ReadInput()
  local WasDown, WasRight = Input.Down, Input.RightDown
  local x, y
 
- if MouseServiceOk and InputService then
-  local ok, loc = pcall(function()
-   return InputService:GetMouseLocation()
-  end)
-  if ok and loc then
-   x, y = loc.X, loc.Y
-  else
-   MouseServiceOk = false
+ pcall(function()
+  if type(getmouseposition) == "function" then
+   local Point = getmouseposition()
+   x = Point and (Point.X or Point.x)
+   y = Point and (Point.Y or Point.y)
   end
- end
+ end)
 
  if type(x) ~= "number" or type(y) ~= "number" then
-  pcall(function()
-   local live = LocalPlayer:GetMouse()
-   Mouse = live or Mouse
-   x, y = Mouse.X, Mouse.Y
-  end)
+ pcall(function()
+  x = Mouse.X
+  y = Mouse.Y
+ end)
  end
 
  if type(x) == "number" and type(y) == "number" then
   Input.X, Input.Y = x, y
-  State.LastMX, State.LastMY = x, y
+  Input.LastX, Input.LastY = x, y
  else
-  Input.X = State.LastMX or 0
-  Input.Y = State.LastMY or 0
+  Input.X = Input.LastX or 0
+  Input.Y = Input.LastY or 0
  end
 
  local down, right = false, false
@@ -1368,6 +1359,7 @@ local State = {
  LastMY = 0,
  LastX = 0,
  LastY = 0,
+ HasKeybinds = false,
  TabLayout = "side",
  Effect = nil,
  EffectColor = nil,
@@ -1455,14 +1447,14 @@ local function ReleaseDrags()
 end
 
 local function ReadKeys()
- if not State.Open and State.Visible < 0.01 then
-  local MenuKey = Keys[State.MenuKey]
-  if MenuKey then
-   local Held = iskeypressed(MenuKey.Code)
-   MenuKey.Click = Held and not MenuKey.Held
-   MenuKey.Held = Held
-  end
-  return
+ if not State.Open and State.Visible < 0.01 and not State.HasKeybinds then
+ local Key = Keys[State.MenuKey]
+ if Key then
+ local Held = iskeypressed(Key.Code)
+ Key.Click = Held and not Key.Held
+ Key.Held = Held
+ end
+ return
  end
 
  for Index = 1, #KeyOrder do
@@ -4423,6 +4415,7 @@ end
 
 function RowClass:AddKeybind(key, mode, callback)
  self.Bind = { Value = KeyName.Plain(key), Mode = mode or "Hold", Active = false, Glow = 0, Callback = callback }
+ State.HasKeybinds = true
 
  return self
 end
@@ -6252,6 +6245,7 @@ do
  if Settings.hotkeyEnabled ~= nil then State.HotkeyShown = Settings.hotkeyEnabled ~= false end
  if Settings.glowMul then State.Glow = Settings.glowMul end
  if Settings.lite ~= nil then State.Lite = Settings.lite == true end
+ if Settings.smartFps ~= nil then State.SmartFps = Settings.smartFps ~= false end
  if Settings.sidebarPinned ~= nil then State.RailPinned = Settings.sidebarPinned == true end
  if Settings.dropdownInline ~= nil then State.DropdownInline = Settings.dropdownInline == true end
  if Settings.cardStrk then Alpha.CardStroke = Settings.cardStrk end
