@@ -3095,6 +3095,19 @@ local Library do
 
     -- // Watermark \\ --
 
+    local FpsFrames, FpsStamp, FpsValue = 0, tick(), 0
+    local function GetOverlayFps()
+        FpsFrames = FpsFrames + 1
+        local Now = tick()
+        local Elapsed = Now - FpsStamp
+        if Elapsed >= 0.25 then
+            FpsValue = MathFloor(FpsFrames / Elapsed + 0.5)
+            FpsFrames = 0
+            FpsStamp = Now
+        end
+        return FpsValue
+    end
+
     function Library:Watermark(Name)
         self.WatermarkData = self.WatermarkData or {
             X = 10, Y = 10,
@@ -3109,7 +3122,7 @@ local Library do
         local WM = self.WatermarkData
         if not WM or not WM.Visible then return end
 
-        local Text = WM.Name .. "  |  " .. MathFloor(get_overlay_fps()) .. " FPS"
+        local Text = WM.Name .. "  |  " .. GetOverlayFps() .. " FPS"
         local Bounds = GetTextBounds(Text)
         local Width = MathCeil(Bounds.X) + 20
         local Height = MathMax(22, MathCeil(Bounds.Y) + 10)
@@ -3176,7 +3189,14 @@ local Library do
             if not Ok or type(Body) ~= "string" then return nil end
 
             local Decoded
-            Ok, Decoded = pcall(function() return crypt.json.decode(Body) end)
+            Ok, Decoded = pcall(function()
+                return game:GetService("HttpService"):JSONDecode(Body)
+            end)
+            if not Ok or type(Decoded) ~= "table" then
+                Ok, Decoded = pcall(function()
+                    return crypt.json.decode(Body)
+                end)
+            end
             if not Ok or type(Decoded) ~= "table" or type(Decoded.data) ~= "table" then return nil end
 
             for _, Entry in Decoded.data do
