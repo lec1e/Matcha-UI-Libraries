@@ -56,6 +56,22 @@ local Library do
         end)
     end)
 
+    local VK = {
+        LeftMouse = 0x01, RightMouse = 0x02,
+        Backspace = 0x08, Tab = 0x09, Enter = 0x0D, Escape = 0x1B, Space = 0x20,
+        LeftShift = 0xA0, RightShift = 0xA1, Shift = 0x10,
+        LeftCtrl = 0xA2, RightCtrl = 0xA3, Ctrl = 0x11,
+        LeftAlt = 0xA4, RightAlt = 0xA5, Alt = 0x12,
+        Insert = 0x2D, Delete = 0x2E,
+        LeftArrow = 0x25, UpArrow = 0x26, RightArrow = 0x27, DownArrow = 0x28,
+        ["0"] = 0x30, ["1"] = 0x31, ["2"] = 0x32, ["3"] = 0x33, ["4"] = 0x34,
+        ["5"] = 0x35, ["6"] = 0x36, ["7"] = 0x37, ["8"] = 0x38, ["9"] = 0x39,
+        A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46, G = 0x47,
+        H = 0x48, I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C, M = 0x4D, N = 0x4E,
+        O = 0x4F, P = 0x50, Q = 0x51, R = 0x52, S = 0x53, T = 0x54, U = 0x55,
+        V = 0x56, W = 0x57, X = 0x58, Y = 0x59, Z = 0x5A,
+    }
+
     local function IsKeyPressed(Target)
         if not Target or Target == "" then
             return false
@@ -63,19 +79,17 @@ local Library do
         if PressedKeySet[Target] or PressedKeySet[string.lower(Target)] then
             return true
         end
-        local Down = false
-        pcall(function()
-            local Code = Enum.KeyCode[Target]
-            if Code then
-                Down = UserInputService:IsKeyDown(Code) == true
-            end
-        end)
-        if not Down then
+        local Code = VK[Target]
+        if type(Code) == "number" then
+            local Down = false
             pcall(function()
-                Down = iskeypressed(Target) == true
+                Down = iskeypressed(Code) == true
             end)
+            if Down then
+                return true
+            end
         end
-        return Down == true
+        return false
     end
 
     local function isleftpressed()
@@ -98,17 +112,17 @@ local Library do
     local function ReadMouse()
         local MX, MY
         pcall(function()
-            if type(getmouseposition) == "function" then
-                local Point = getmouseposition()
-                MX = Point and (Point.X or Point.x)
-                MY = Point and (Point.Y or Point.y)
-            end
+            local Mouse = Players.LocalPlayer and Players.LocalPlayer:GetMouse()
+            MX = Mouse and Mouse.X
+            MY = Mouse and Mouse.Y
         end)
         if type(MX) ~= "number" or type(MY) ~= "number" then
             pcall(function()
-                local Mouse = Players.LocalPlayer and Players.LocalPlayer:GetMouse()
-                MX = Mouse and Mouse.X
-                MY = Mouse and Mouse.Y
+                if type(getmouseposition) == "function" then
+                    local Point = getmouseposition()
+                    MX = Point and (Point.X or Point.x)
+                    MY = Point and (Point.Y or Point.y)
+                end
             end)
         end
         if type(MX) == "number" and type(MY) == "number" then
@@ -165,7 +179,17 @@ local Library do
     local MathMin = math.min
 
     local TableInsert = table.insert
-    local TableFind = table.find
+    local TableFind = table.find or function(List, Value)
+        if type(List) ~= "table" then
+            return nil
+        end
+        for Index, Item in ipairs(List) do
+            if Item == Value then
+                return Index
+            end
+        end
+        return nil
+    end
     local TableRemove = table.remove
     local TableConcat = table.concat
     local TableSort = table.sort
@@ -315,7 +339,7 @@ local Library do
 
     local function LoadIcons()
         for Name, Url in pairs(IconUrls) do
-            local ImagePath = Library.Folders.Images .. "/" .. Name .. ".png"
+            local ImagePath = Library.Folders.Images .. "/" .. Name .. ".dat"
 
             if not FSFile(ImagePath) then
                 local Body = HttpGet(Url)
@@ -465,11 +489,13 @@ local Library do
             Visible = true,
             Position = Vector2New(X, Y),
             Size = Size,
+            FontSize = Size,
             Color = Color,
             Text = Text,
             Center = Center or false,
             Transparency = 1 - (Opacity or 1),
             Font = Library.Font,
+            Outline = true,
             ZIndex = Pool.Order,
         })
     end
@@ -480,6 +506,7 @@ local Library do
         UpdateDrawing(MeasureText, {
             Text = tostring(Text),
             Size = Size or Library.FontSize,
+            FontSize = Size or Library.FontSize,
             Font = Library.Font,
         })
         local Bounds
@@ -3341,4 +3368,6 @@ local Library do
     end
 end
 
+_G.GoopUI = Library
+_G.Library = Library
 return Library
