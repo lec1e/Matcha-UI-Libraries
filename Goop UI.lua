@@ -517,7 +517,9 @@ local Library do
             Position = Vector2New(X, Y),
             Size = Vector2New(W, H),
             Color = Color,
-            Transparency = 1 - (Opacity or 1),
+            Filled = true,
+            -- Matcha Transparency is alpha (1 = opaque). Default is 1; docs never set it.
+            Transparency = Opacity or 1,
             ZIndex = Pool.Order,
         })
     end
@@ -553,7 +555,7 @@ local Library do
             Color = Color,
             Text = Text,
             Center = Center or false,
-            Transparency = 1 - (Opacity or 1),
+            Transparency = Opacity or 1,
             Font = Library.Font,
             Outline = true,
             ZIndex = Pool.Order,
@@ -600,7 +602,7 @@ local Library do
             Size = Vector2New(W, H),
             Data = Data,
             Color = Color or Theme["White"],
-            Transparency = 1 - (Opacity or 1),
+            Transparency = Opacity or 1,
             ZIndex = ForcedZ or Pool.Order,
         })
     end
@@ -3389,7 +3391,7 @@ local Library do
                         Size = Vector2New(IW, IH),
                         Data = Btn.Icon,
                         Color = IconColor,
-                        Transparency = 0,
+                        Transparency = 1,
                         ZIndex = 10000,
                     })
                     Btn._IconColor = IconColor
