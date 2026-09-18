@@ -1,4 +1,3 @@
-
 local Library do
     local UserInputService = game:GetService("UserInputService")
     local Players = game:GetService("Players")
@@ -288,13 +287,13 @@ local Library do
         Fonts = {
             Data = {List = {}, Fonts = {}},
             Stored = {
-                {"ProggyClean.ttf",       "ProggyClean.json",       "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/ProggyClean.ttf"},
-                {"Minecraftia.ttf",       "Minecraftia.json",       "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/Minecraftia.ttf"},
-                {"Verdana.ttf",           "Verdana.json",           "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/Verdana.ttf"},
-                {"Visitor.ttf",           "Visitor.json",           "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/Visitor.ttf"},
-                {"SmallestPixel.ttf",     "SmallestPixel.json",     "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/SmallestPixel.ttf"},
-                {"Windows-XP-Tahoma.ttf", "Windows-XP-Tahoma.json", "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/Windows-XP-Tahoma.ttf"},
-                {"Monaco.ttf",            "Monaco.json",            "https://github.com/lec1e/Severe-Scripts/raw/refs/heads/main/Fixed%20MM2/Font/Monaco.ttf"},
+                {"ProggyClean.ttf",       "ProggyClean.json",       "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/ProggyClean.ttf"},
+                {"Minecraftia.ttf",       "Minecraftia.json",       "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/Minecraftia.ttf"},
+                {"Verdana.ttf",           "Verdana.json",           "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/Verdana.ttf"},
+                {"Visitor.ttf",           "Visitor.json",           "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/Visitor.ttf"},
+                {"SmallestPixel.ttf",     "SmallestPixel.json",     "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/SmallestPixel.ttf"},
+                {"Windows-XP-Tahoma.ttf", "Windows-XP-Tahoma.json", "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/Windows-XP-Tahoma.ttf"},
+                {"Monaco.ttf",            "Monaco.json",            "https://github.com/lec1e/Matcha-UI-Libraries/raw/refs/heads/main/fonts/Monaco.ttf"},
             },
         }
     }
